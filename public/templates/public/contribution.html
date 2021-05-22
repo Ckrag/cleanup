@@ -18,6 +18,8 @@
 
 <div id="trash_map"></div>
 
+<button onclick="saveContribution()" id="save">Save</button>
+
 <script>
     var mymap = L.map('trash_map').setView([55.370865, 10.384312], 13);
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
@@ -36,6 +38,18 @@
         path.push([e.latlng.lat, e.latlng.lng]);
         lines.forEach(line => mymap.removeLayer(line));
         renderPath(path)
+    }
+
+    function saveContribution() {
+        if (path.length === 0) return;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/contribution", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}')
+        xhr.send(JSON.stringify({
+            "path": path,
+            "name": "My path",
+        }));
     }
 
     function renderPath(path) {
