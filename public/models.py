@@ -20,13 +20,13 @@ class CleanRoute(models.Model):
 class CleanNode(models.Model):
     indexes = [
         models.Index(fields=['lat']),
-        models.Index(fields=['lon']),
+        models.Index(fields=['lng']),
         models.Index(fields=['author']),
         models.Index(fields=['pub_date']),
         models.Index(fields=['decay_date']),
     ]
     lat = models.FloatField()
-    lon = models.FloatField()
+    lng = models.FloatField()
 
     decay_date = models.DateTimeField('date decayed')
 

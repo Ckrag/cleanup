@@ -17,9 +17,9 @@
 <h1>Frontpage</h1>
 
 <ul>
-    {% for node in grouped_nodes %}
+    {% for route in routes %}
     <li>
-        <h2>{{ node.title }}</a></h2>
+        <h2>{{ route.title }}</h2>
     </li>
     {% endfor %}
 </ul>
@@ -36,15 +36,80 @@
         zoomOffset: -1,
         accessToken: 'pk.eyJ1IjoidHJvZmZlbCIsImEiOiJja29yYnVwOHIxM2R5MzJwaTRhY2M2czh0In0.nllfx-HCKAEWKdldVFdbEA'
     }).addTo(mymap);
+
+    function drawPathedNodes2(pathed) {
+        pathed.forEach((route_id, nodes) => {
+            let path = []
+            nodes.forEach(node => {
+                path.push([node.lat, node.lng])
+            })
+            //TODO: Draw in pairs of two! We want lines not polygons!
+            L.polygon(path).addTo(mymap);
+        })
+    }
+
+    function drawPathedNodes(pathed) {
+        path = [];
+        var curId = null;
+        pathed.forEach((route_id, node) => {
+            console.log(1)
+            if (curId === null || curId !== route_id) {
+                console.log(2)
+                if (curId !== null) {
+                    console.log("KEK")
+                    console.log(path)
+                    L.polygon(path).addTo(mymap);
+                }
+                path = [];
+                curId = route_id;
+            }
+            path.push([node.lat, node.lng])
+        })
+    }
+
+    function getPathedNodes(nodes) {
+        let paths = new Map();
+        nodes.forEach(node => {
+            if (!paths.has(node.route_id)) {
+                paths.set(node.route_id, []);
+            }
+            paths.get(node.route_id).push(node);
+        })
+        return paths;
+    }
+
+    function getRelevantNodes(lat, lng, latDelta, lngDelta) {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/nodes", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}')
+        xhr.onload = function (e) {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    let data = JSON.parse(xhr.response)['nodes']
+                    let pathed = getPathedNodes(data)
+                    drawPathedNodes(pathed)
+                } else {
+                    alert("Unable to get nodes")
+                    console.error(xhr.statusText);
+                }
+            }
+        };
+        xhr.send(JSON.stringify({
+            "lat": lat,
+            "lng": lng,
+            "lat_delta": latDelta,
+            "lng_delta": lngDelta
+        }));
+    }
+
+    getRelevantNodes(
+        mymap.getBounds()._northEast.lat,
+        mymap.getBounds()._southWest.lng,
+        mymap.getBounds()._northEast.lat - mymap.getBounds()._southWest.lat,
+        mymap.getBounds()._northEast.lng - mymap.getBounds()._southWest.lng
+    )
 </script>
-<script>path = []</script>
-{% for node in grouped_nodes %}
-<li>
-    <script>
-        path.push(["{{ node.lat }}", "{{node.lon}}"])
-    </script>
-</li>
-{% endfor %}
-<script>var pathPart = L.polygon(path).addTo(mymap);</script>
+
 </body>
 </html>
