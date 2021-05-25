@@ -37,35 +37,22 @@
         accessToken: 'pk.eyJ1IjoidHJvZmZlbCIsImEiOiJja29yYnVwOHIxM2R5MzJwaTRhY2M2czh0In0.nllfx-HCKAEWKdldVFdbEA'
     }).addTo(mymap);
 
-    function drawPathedNodes2(pathed) {
-        pathed.forEach((route_id, nodes) => {
-            let path = []
-            nodes.forEach(node => {
+    function drawPathedNodes(pathed) {
+        for (const [route_id, nodes] of pathed.entries()) {
+            path = []
+            nodes.forEach((node, i) => {
                 path.push([node.lat, node.lng])
+
+                if (i % 2 === 1) {
+                    console.log(path)
+                    L.polygon(path).addTo(mymap)
+                    path = []
+                }
+
             })
-            //TODO: Draw in pairs of two! We want lines not polygons!
-            L.polygon(path).addTo(mymap);
-        })
+        }
     }
 
-    function drawPathedNodes(pathed) {
-        path = [];
-        var curId = null;
-        pathed.forEach((route_id, node) => {
-            console.log(1)
-            if (curId === null || curId !== route_id) {
-                console.log(2)
-                if (curId !== null) {
-                    console.log("KEK")
-                    console.log(path)
-                    L.polygon(path).addTo(mymap);
-                }
-                path = [];
-                curId = route_id;
-            }
-            path.push([node.lat, node.lng])
-        })
-    }
 
     function getPathedNodes(nodes) {
         let paths = new Map();
