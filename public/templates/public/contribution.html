@@ -14,56 +14,23 @@
 </head>
 <body>
 
-<h1>Contribution</h1>
+<div id="header">
+    <a href="/">Frontpage</a>
+    <a href="/contribute">Contribute</a>
+</div>
 
-<div id="trash_map"></div>
+<h1>{{ route.title }}</h1>
+<p>Description: {{ route.description }}</p>
+<p>By: {{ route.author_username }}</p>
 
-<button onclick="saveContribution()" id="save">Save</button>
+<ul>
 
-<script>
-    var mymap = L.map('trash_map').setView([55.370865, 10.384312], 13);
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 18,
-        id: 'mapbox/streets-v11',
-        tileSize: 512,
-        zoomOffset: -1,
-        accessToken: 'pk.eyJ1IjoidHJvZmZlbCIsImEiOiJja29yYnVwOHIxM2R5MzJwaTRhY2M2czh0In0.nllfx-HCKAEWKdldVFdbEA'
-    }).addTo(mymap);
+    {% for route in routes %}
+    <li>
+        <h2>{{ route.title }}</h2>
+    </li>
+    {% endfor %}
+</ul>
 
-    var path = [];
-    var lines = [];
-
-    function onMapClick(e) {
-        path.push([e.latlng.lat, e.latlng.lng]);
-        lines.forEach(line => mymap.removeLayer(line));
-        renderPath(path)
-    }
-
-    function saveContribution() {
-        if (path.length === 0) return;
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/contribution", true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}')
-        xhr.send(JSON.stringify({
-            "path": path,
-            "name": "My path",
-        }));
-    }
-
-    function renderPath(path) {
-        for (let i = 0; i < path.length; i++) {
-            if (i === 0 && path.length === 1) {
-                lines.push(L.polygon(path).addTo(mymap));
-            }
-            if (i > 0) {
-                lines.push(L.polygon(path.slice(i - 1, i+1)).addTo(mymap));
-            }
-        }
-    }
-
-    mymap.on('click', onMapClick);
-</script>
 </body>
 </html>

@@ -14,12 +14,17 @@
 </head>
 <body>
 
-<h1>Frontpage</h1>
+<div id="header">
+    <a href="/">Frontpage</a>
+    <a href="/contribute">Contribute</a>
+</div>
+
+<h1>Trash</h1>
 
 <ul>
     {% for route in routes %}
     <li>
-        <h2>{{ route.title }}</h2>
+        <h2><a href="/contribution/{{ route.id }}/">{{ route.title }}</a></h2>
     </li>
     {% endfor %}
 </ul>
@@ -27,7 +32,7 @@
 <div id="trash_map"></div>
 
 <script>
-    var mymap = L.map('trash_map').setView([55.370865, 10.384312], 13);
+    const trashMap = L.map('trash_map').setView([55.370865, 10.384312], 13);
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         maxZoom: 18,
@@ -35,20 +40,18 @@
         tileSize: 512,
         zoomOffset: -1,
         accessToken: 'pk.eyJ1IjoidHJvZmZlbCIsImEiOiJja29yYnVwOHIxM2R5MzJwaTRhY2M2czh0In0.nllfx-HCKAEWKdldVFdbEA'
-    }).addTo(mymap);
+    }).addTo(trashMap);
 
     function drawPathedNodes(pathed) {
         for (const [route_id, nodes] of pathed.entries()) {
-            path = []
+            let path = []
             nodes.forEach((node, i) => {
                 path.push([node.lat, node.lng])
-
-                if (i % 2 === 1) {
-                    console.log(path)
-                    L.polygon(path).addTo(mymap)
-                    path = []
+                if (path.length === 2) {
+                    const pl = L.polygon(path).addTo(trashMap)
+                    pl.bindPopup(node.route_title);
+                    path = path.slice(1,2)
                 }
-
             })
         }
     }
@@ -71,7 +74,7 @@
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}')
         xhr.onload = function (e) {
-            if (xhr.readyState === 4) {
+            if (xhr.readyState === xhr.DONE) {
                 if (xhr.status === 200) {
                     let data = JSON.parse(xhr.response)['nodes']
                     let pathed = getPathedNodes(data)
@@ -91,10 +94,10 @@
     }
 
     getRelevantNodes(
-        mymap.getBounds()._northEast.lat,
-        mymap.getBounds()._southWest.lng,
-        mymap.getBounds()._northEast.lat - mymap.getBounds()._southWest.lat,
-        mymap.getBounds()._northEast.lng - mymap.getBounds()._southWest.lng
+        trashMap.getBounds()._northEast.lat,
+        trashMap.getBounds()._southWest.lng,
+        trashMap.getBounds()._northEast.lat - trashMap.getBounds()._southWest.lat,
+        trashMap.getBounds()._northEast.lng - trashMap.getBounds()._southWest.lng
     )
 </script>
 

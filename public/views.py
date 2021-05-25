@@ -47,16 +47,20 @@ def get_map_relevant_nodes(request: HttpRequest):
 
 
 @login_required
-def contribution(request: HttpRequest):
+def contribute(request: HttpRequest):
     if request.method == "POST":
         contr = json.loads(request.body)
 
         if len(contr['path']) == 0:
             return JsonResponse({}, status=400)
+        if 'title' not in contr or len(contr['title'].strip()) == 0:
+            return JsonResponse({}, status=400)
+        if 'description' not in contr or len(contr['description'].strip()) == 0:
+            return JsonResponse({}, status=400)
 
         route = CleanRoute()
-        route.title = contr['name']
-        route.description = "my description"
+        route.title = contr['title']
+        route.description = contr['description']
         route.decay_date = '2021-05-19 21:38:25+00'
         route.pub_date = '2021-05-19 21:38:25+00'
         route.author = request.user
@@ -78,4 +82,15 @@ def contribution(request: HttpRequest):
             "status": "accepted"
         }, status=201)
     else:
-        return render(request, 'public/contribution.html', {})
+        return render(request, 'public/contribute.html', {})
+
+
+def contribution(request: HttpRequest, route_id: int):
+    routes = CleanRoute.objects.filter(id=route_id)
+    routes = routes.select_related('author').only('author__username')
+    routes = routes.annotate(
+        author_username=F('author__username'),
+    )
+    return render(request, 'public/contribution.html', {
+        "route": routes[0]
+    })

@@ -6,3 +6,15 @@ body {
     height: 500px;
     width: 500px;
 }
+
+#header {
+
+}
+
+#contribution_title {
+    display: block;
+}
+
+#contribution_desc {
+    display: block;
+}
