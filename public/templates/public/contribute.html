@@ -1,18 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Trash</title>
-    {% load static %}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-            crossorigin=""></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'public/style.css' %}">
+{% extends 'public/base.html' %}
 
-</head>
-<body>
+{% block includes %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+{% endblock %}
+
+
+{% block content %}
 
 <h1>Contribute</h1>
 
@@ -63,7 +61,7 @@
 
         if (path.length === 0 || title.length === 0 || desc.length === 0) return;
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/contribution", true);
+        xhr.open("POST", "/contribute/", true);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}')
         xhr.onload = function (e) {
@@ -99,5 +97,5 @@
 
     trashMap.on('click', onMapClick);
 </script>
-</body>
-</html>
+
+{% endblock %}

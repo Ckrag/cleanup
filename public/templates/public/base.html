@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'public/style.css' %}">
+    {% block includes %}{% endblock %}
+    <title>{% block title %}Trash{% endblock %}</title>
+</head>
+<body>
+
+<div id="header">
+    <a href="/">Frontpage</a>
+    <a href="/contribute">Contribute</a>
+    {% if user.is_authenticated %}
+        Logged in as {{ user.username }}
+        <a href="{% url 'public:logout' %}">Log Out</a>
+    {% else %}
+        <script>
+            document.write('<a href="{% url 'public:login' %}?next=' + window.location.pathname + '">Log In</a>')
+        </script>
+    {% endif %}
+</div>
+
+{% block content %}{% endblock %}
+
+</body>
+</html>
