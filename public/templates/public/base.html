@@ -19,6 +19,7 @@
         <script>
             document.write('<a href="{% url 'public:login' %}?next=' + window.location.pathname + '">Log In</a>')
         </script>
+        <a href="{% url 'public:signup' %}">Signup</a>
     {% endif %}
 </div>
 

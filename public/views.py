@@ -1,14 +1,15 @@
 import datetime
 import json
 
-from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.db.models import F
 from django.http import HttpRequest, JsonResponse, Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views import generic
 
 from public.models import CleanNode, CleanRoute
-from trash import settings
 
 
 def index(request: HttpRequest):
@@ -16,26 +17,6 @@ def index(request: HttpRequest):
         "routes": CleanRoute.objects.order_by('-pub_date')[:10]
     }
     return render(request, 'public/index.html', context)
-
-
-def login(request: HttpRequest, authed_user=None):
-    if request.method == "GET":
-        return render(request, 'public/login.html', {})
-
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            print("Logging in ...")
-            login(request, user)
-            print("logged in")
-            # Redirect to a success page.
-            #return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
-        else:
-            # Return an 'invalid login' error (later..)
-            return Http404()
-    return Http404()
 
 
 def get_map_relevant_nodes(request: HttpRequest):
@@ -116,3 +97,9 @@ def contribution(request: HttpRequest, route_id: int):
     return render(request, 'public/contribution.html', {
         "route": routes[0]
     })
+
+
+class SignUpView(generic.CreateView):
+    form_class = UserCreationForm
+    success_url = reverse_lazy('public:login')
+    template_name = 'registration/signup.html'

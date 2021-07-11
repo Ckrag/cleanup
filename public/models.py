@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -35,3 +36,9 @@ class CleanNode(models.Model):
     route = models.ForeignKey(CleanRoute, on_delete=models.CASCADE)
 
     objects = models.Manager()
+
+
+class OptionalPersonForm(forms.Form):
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    nick_name = forms.CharField(required=False)
