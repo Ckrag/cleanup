@@ -14,12 +14,12 @@
     <a href="/contribute">Contribute</a>
     {% if user.is_authenticated %}
         Logged in as {{ user.username }}
-        <a href="{% url 'public:logout' %}">Log Out</a>
+        <a href="{% url 'logout' %}">Log Out</a>
     {% else %}
         <script>
-            document.write('<a href="{% url 'public:login' %}?next=' + window.location.pathname + '">Log In</a>')
+            document.write('<a href="{% url 'login' %}?next=' + window.location.pathname + '">Log In</a>')
         </script>
-        <a href="{% url 'public:signup' %}">Signup</a>
+        <a href="{% url 'signup' %}">Signup</a>
     {% endif %}
 </div>
 
