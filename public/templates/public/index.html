@@ -7,6 +7,47 @@
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
         integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
         crossorigin=""></script>
+{% load static %}
+<script src="{% static 'public/trash_map.js' %}"></script>
+<script>
+    window.onload = function() {
+        document.getElementById("find_me_btn").addEventListener("click", function() {
+            geo = navigator.geolocation;
+            geo.getCurrentPosition(
+                (pos) => {
+                    trashMap.setView([pos.coords.latitude, pos.coords.longitude], 13)
+                    console.log("user location used", pos)
+                },
+                (deniedReason) => {
+                    if(deniedReason.code === 1) {
+                        console.log("User denied GPS access");
+                    } else {
+                        console.log("error finding GPS pos", deniedReason);
+                    }
+                }
+            );
+        });
+
+        const trashMap = L.map('trash_map').setView([55.370865, 10.384312], 13);
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18,
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: 'pk.eyJ1IjoidHJvZmZlbCIsImEiOiJja29yYnVwOHIxM2R5MzJwaTRhY2M2czh0In0.nllfx-HCKAEWKdldVFdbEA'
+        }).addTo(trashMap);
+
+        getRelevantNodes(
+            '{{ csrf_token }}',
+            trashMap.getBounds()._northEast.lat,
+            trashMap.getBounds()._southWest.lng,
+            trashMap.getBounds()._northEast.lat - trashMap.getBounds()._southWest.lat,
+            trashMap.getBounds()._northEast.lng - trashMap.getBounds()._southWest.lng
+        )
+    };
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -22,77 +63,6 @@
 </ul>
 
 <div id="trash_map"></div>
-
-<script>
-    const trashMap = L.map('trash_map').setView([55.370865, 10.384312], 13);
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        maxZoom: 18,
-        id: 'mapbox/streets-v11',
-        tileSize: 512,
-        zoomOffset: -1,
-        accessToken: 'pk.eyJ1IjoidHJvZmZlbCIsImEiOiJja29yYnVwOHIxM2R5MzJwaTRhY2M2czh0In0.nllfx-HCKAEWKdldVFdbEA'
-    }).addTo(trashMap);
-
-    function drawPathedNodes(pathed) {
-        for (const [route_id, nodes] of pathed.entries()) {
-            let path = []
-            nodes.forEach((node, i) => {
-                path.push([node.lat, node.lng])
-                if (path.length === 2) {
-                    const pl = L.polygon(path).addTo(trashMap)
-                    pl.bindPopup(node.route_title);
-                    path = path.slice(1,2)
-                }
-            })
-        }
-    }
-
-
-    function getPathedNodes(nodes) {
-        let paths = new Map();
-        nodes.forEach(node => {
-            if (!paths.has(node.route_id)) {
-                paths.set(node.route_id, []);
-            }
-            paths.get(node.route_id).push(node);
-        })
-        return paths;
-    }
-
-    function getRelevantNodes(lat, lng, latDelta, lngDelta) {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/nodes/", true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader("X-CSRFToken", '{{ csrf_token }}')
-        xhr.onload = function (e) {
-            if (xhr.readyState === xhr.DONE) {
-                if (xhr.status === 200) {
-                    let data = JSON.parse(xhr.response)['nodes']
-                    let pathed = getPathedNodes(data)
-                    drawPathedNodes(pathed)
-                } else {
-                    alert("Unable to get nodes")
-                    console.error(xhr.statusText);
-                }
-            }
-        };
-        xhr.send(JSON.stringify({
-            "lat": lat,
-            "lng": lng,
-            "lat_delta": latDelta,
-            "lng_delta": lngDelta
-        }));
-    }
-
-    getRelevantNodes(
-        trashMap.getBounds()._northEast.lat,
-        trashMap.getBounds()._southWest.lng,
-        trashMap.getBounds()._northEast.lat - trashMap.getBounds()._southWest.lat,
-        trashMap.getBounds()._northEast.lng - trashMap.getBounds()._southWest.lng
-    )
-
-
-</script>
+<button id="find_me_btn">Find Me</button>
 
 {% endblock %}
